@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>How to Stop Worrying and Love the Store</title>
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
@@ -359,38 +359,133 @@ actions: {
 				</section>
 
 				<section>
-					<h1>Common Questions</h1>
-				</section>
+					<section>
+						<h2>Advanced Patterns</h2>
+						<p class="fragment">Things I Wish I Knew Earlier</p>
+					</section>
 
+					<section>
+						<h3>Getters with Parameters</h3>
+						<pre style="width: 1100px; margin-left: -70px"><code class="javascript">// Instead of multiple similar getters...
+getActiveVisits: state => state.visits.filter(v => v.active),
+getCancelledVisits: state => state.visits.filter(v => v.cancelled),
+getCompletedVisits: state => state.visits.filter(v => v.completed),
 
-				<section>
-					<div>
-						<h4>What about small components?</h4>
-						<p><small>Local state is fine for truly local concerns (like form input state)</small></p>
-					</div>
-				</section>
-				<section>
-					<div style="text-align: left">
-						<div>
-							<h4>Why not just make API calls in components?</h4>
-							<p><small>Because state management isn't just about getting data.<br />It's about managing the entire lifecycle of that data.</small></p>
-						</div>
-					</div>
-				</section>
-				<section>
-					<div style="text-align: left">
-						<div>
-							<h4>"But it takes longer to do it this way!"</h4>
-							<p class="fragment"><small>You know what else takes longer? Explaining to users why:</small></p>
-							<ul style="font-size: 0.6em;">
-								<li class="fragment"><span>Their data disappeared when they switched tabs</span></li>
-								<li class="fragment"><span>They have to refresh the page to see updates</span></li>
-								<li class="fragment"><span>The loading spinner is stuck forever</span></li>
-								<li class="fragment"><span>The error message says "undefined is not a function"</span></li>
-							</ul>
-							<p class="fragment">Technical debt always comes due.<br />Users pay the interest.</p>
-						</div>
-					</div>
+// Create one flexible getter
+getVisitsByStatus: state => status => state.visits.filter(v => v.status === status)</code></pre>
+						<pre class="fragment"><code class="javascript">// Usage in components
+computed: {
+  activeVisits() {
+    return this.$store.getters.getVisitsByStatus('active')
+  }
+}</code></pre>
+					</section>
+
+					<section>
+						<h3>Action Composition</h3>
+						<pre><code class="javascript">actions: {
+  // Load everything we need on app start
+  async initializeApp({ dispatch }) {
+    await dispatch('loadUser')  // Must load first
+
+    // These can load in parallel
+    await Promise.all([
+      dispatch('loadVisits'),
+      dispatch('loadProviders'),
+      dispatch('loadSettings')
+    ])
+  },</code></pre>
+					</section>
+
+					<section>
+						<h3>Global Action Subscribers</h3>
+						<pre><code class="javascript">// Perfect for global loading states
+store.subscribeAction({
+  before: (action, state) => {
+    if (action.type.startsWith('load')) {
+      startLoadingSpinner()
+    }
+  },
+  after: (action, state) => {
+    if (action.type.startsWith('load')) {
+      stopLoadingSpinner()
+    }
+  },
+  error: (action, state, error) => {
+    showErrorNotification(error)
+  }
+})</code></pre>
+						<p class="fragment">Handle loading and errors in one place!</p>
+					</section>
+
+					<section>
+						<h3>Better Async State</h3>
+						<pre><code class="javascript">// Instead of separate flags everywhere...
+state: {
+  visits: [],
+  isLoading: false,
+  error: null
+}
+
+// Group related state together
+state: {
+  visits: {
+    data: [],
+    status: 'idle', // 'loading' | 'success' | 'error'
+    error: null,
+    lastLoaded: null
+  }
+}
+
+// Usage in components
+computed: {
+  isLoading() {
+    return this.visits.status === 'loading'
+  }
+}</code></pre>
+					</section>
+
+					<section>
+						<h3>Clean State Reset</h3>
+						<pre><code class="javascript">const initialState = {
+  visits: {
+    data: [],
+    status: 'idle',
+    error: null
+  }
+}
+
+export default {
+  state: () => ({...initialState}),  // Function form!
+  mutations: {
+    resetState(state) {
+      Object.assign(state, initialState)
+    }
+  }
+}</code></pre>
+						<p class="fragment">Perfect for user logout or error recovery</p>
+					</section>
+
+					<section>
+						<h3>Two-Way Computed with Store</h3>
+						<pre><code class="javascript">computed: {
+  visitName: {
+    get() {
+      return this.$store.state.currentVisit.name
+    },
+    set(value) {
+      this.$store.commit('updateVisitName', value)
+    }
+  }
+}
+
+// In template
+&lt;input
+  v-model="visitName"
+  placeholder="Visit name"
+/&gt;</code></pre>
+						<p class="fragment">Clean two-way binding with store state</p>
+					</section>
 				</section>
 
 				<section>
