@@ -21,13 +21,14 @@
                 --r-main-color: white;
                 --r-heading-color: white;
                 --r-main-font: "Rubik";
-	            --r-heading-font: "Rubik";
+                --r-heading-font: "Rubik";
             }
 
             .reveal pre.code-sm {
                 font-size: 0.4em;
                 line-height: 1.2;
             }
+
             .reveal pre.code-xs {
                 font-size: 0.3em;
                 line-height: 1.2;
@@ -39,6 +40,7 @@
                 justify-content: space-between;
                 gap: 2rem;
             }
+
             .column {
                 flex: 1;
             }
@@ -94,7 +96,7 @@ watch: {
   }
 }</code></pre>
 					</div>
-					<br />
+					<br/>
 					<div class="fragment">
     <pre><code class="javascript">// Exhibit B: Poor error handling
 const { data } = await this.reportRequest(...)
@@ -103,7 +105,7 @@ this.tableData = data
 </code></pre>
 					</div>
 					<div class="fragment">
-						<img src="assets/this-is-fine.jpg" alt="This is fine meme" style="position: absolute; top: 320px; right: 48px; height: 170px !important;" />
+						<img src="assets/this-is-fine.jpg" alt="This is fine meme" style="position: absolute; top: 320px; right: 48px; height: 170px !important;"/>
 					</div>
 				</section>
 
@@ -142,17 +144,17 @@ methods: {
 					</section>
 				</section>
 
-					<section>
-						<div class="columns" style="align-items: center">
-							<div class="column">
-								<h2>Let's Look at Some Anti-Patterns</h2>
-								<p>Or: "What Not To Do"</p>
-							</div>
-							<div class="column">
-								<img src="assets/scared-developer.png" alt="Scared developer" style="height: 600px !important">
-							</div>
+				<section>
+					<div class="columns" style="align-items: center">
+						<div class="column">
+							<h2>Let's Look at Some Anti-Patterns</h2>
+							<p>Or: "What Not To Do"</p>
 						</div>
-					</section>
+						<div class="column">
+							<img src="assets/scared-developer.png" alt="Scared developer" style="height: 600px !important">
+						</div>
+					</div>
+				</section>
 
 				<section>
 					<section>
@@ -195,7 +197,7 @@ actions: {
 
 				<section>
 					<section>
-						<h3>Anti-Pattern #2:<br />Watchers Gone Wild</h3>
+						<h3>Anti-Pattern #2:<br/>Watchers Gone Wild</h3>
 						<pre><code class="javascript">// From our codebase:
 watch: {
   '$store.state.reports.visitResultSetIds.0': {
@@ -486,6 +488,26 @@ export default {
 /&gt;</code></pre>
 						<p class="fragment">Clean two-way binding with store state</p>
 					</section>
+				</section>
+
+				<section>
+					<h3>What You Can Do Tomorrow</h3>
+					<ol>
+						<li class="fragment">Move one API call from a component to the store</li>
+						<li class="fragment">Convert one watcher to a computed property</li>
+						<li class="fragment">Add proper error handling to one store action</li>
+					</ol>
+					<p class="fragment">Small steps, big impact</p>
+				</section>
+
+				<section>
+					<h3>Remember:</h3>
+					<ul>
+						<li class="fragment">Data flows down, events bubble up</li>
+						<li class="fragment">Components show things, stores do things</li>
+						<li class="fragment">Mutations make debugging possible</li>
+						<li class="fragment">Better patterns = better user experience</li>
+					</ul>
 				</section>
 
 				<section>
