@@ -9,15 +9,396 @@
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
 		<link rel="stylesheet" href="dist/theme/black.css">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="plugin/highlight/github.css">
 
-		<!-- Theme used for syntax highlighted code -->
-		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+		<style>
+            :root {
+                --r-background-color: rgb(211, 69, 50);
+                --r-main-font-size: 38px;
+                --r-main-color: white;
+                --r-heading-color: white;
+                --r-main-font: "Rubik";
+	            --r-heading-font: "Rubik";
+            }
+
+            .reveal pre.code-sm {
+                font-size: 0.4em;
+                line-height: 1.2;
+            }
+            .reveal pre.code-xs {
+                font-size: 0.3em;
+                line-height: 1.2;
+            }
+
+            /* Split columns */
+            .columns {
+                display: flex;
+                justify-content: space-between;
+                gap: 2rem;
+            }
+            .column {
+                flex: 1;
+            }
+		</style>
 	</head>
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section>
+					<h1>Vue.js State Management</h1>
+					<h3>Data Down, Events Up</h3>
+					<p class="fragment">Or: How to Stop Worrying and Love the Store</p>
+				</section>
+				<section>
+					<h2>A Brief Timeline</h2>
+					<ul style="font-size: 0.9em;">
+						<li class="fragment">2014: Vue is released</li>
+						<li class="fragment">2016: I started using Vue (coming from PHP)</li>
+						<li class="fragment">Have used Vue 2 and Vue 3 with Vuex and Pinia</li>
+						<li class="fragment">The mindset shift:</li>
+					</ul>
+					<div class="fragment">
+    <pre><code class="php">// PHP: Just get the data and show it
+$users = User::all();
+foreach($users as $user) {
+    echo $user->name;
+}</code></pre>
+					</div>
+					<div class="fragment">
+    <pre><code class="javascript">// Vue: Declare how it should look
+computed: {
+  users() {
+    return this.$store.state.users
+  }
+}
+// Template: <div v-for="user in users">{{ user.name }}</div></code></pre>
+					</div>
+				</section>
+
+				<section>
+					<h2>Our Current Situation</h2>
+					<div class="fragment">
+    <pre><code class="javascript">// Exhibit A: Component doing too much
+data: {
+  tableData: []
+},
+watch: {
+  '$store.state.reports.visitResultSetIds.0': {
+    async handler(visitResultSetId) {
+      const { data } = await this.reportRequest(...)
+      this.tableData = data
+    }
+  }
+}</code></pre>
+					</div>
+					<br />
+					<div class="fragment">
+    <pre><code class="javascript">// Exhibit B: Poor error handling
+const { data } = await this.reportRequest(...)
+this.tableData = data
+// Request failed, but the user just sees a loading spinner
+</code></pre>
+					</div>
+					<div class="fragment">
+						<img src="assets/this-is-fine.jpg" alt="This is fine meme" style="position: absolute; top: 320px; right: 48px; height: 170px !important;" />
+					</div>
+				</section>
+
+				<section>
+					<section>
+						<h2>The Core Principle</h2>
+						<h1 class="fragment">Data flows down</h1>
+						<h1 class="fragment">Events bubble up</h1>
+					</section>
+
+					<section>
+						<h3>Data Down</h3>
+						<pre><code class="javascript">// In the parent
+computed: {
+  ...mapState(['visitData'])
+}
+
+// In the template
+&lt;visit-details
+  :visit="visitData"
+  @update="handleUpdate"
+/&gt;</code></pre>
+					</section>
+
+					<section>
+						<h3>Events Up</h3>
+						<pre><code class="javascript">// In the child component
+methods: {
+  updateVisit() {
+    this.$emit('update', {
+      id: this.visit.id,
+      changes: this.changes
+    })
+  }
+}</code></pre>
+					</section>
+				</section>
+
+					<section>
+						<div class="columns" style="align-items: center">
+							<div class="column">
+								<h2>Let's Look at Some Anti-Patterns</h2>
+								<p>Or: "What Not To Do"</p>
+							</div>
+							<div class="column">
+								<img src="assets/scared-developer.png" alt="Scared developer" style="height: 600px !important">
+							</div>
+						</div>
+					</section>
+
+				<section>
+					<section>
+						<h3>Anti-Pattern #1: Direct State Mutations</h3>
+						<pre><code class="javascript">// In our codebase right now:
+actions: {
+  async loadClosedPeriods({ state }) {
+    const url = `${config.apiUrl}/billing/closedPeriod`
+    const { data } = await axios.get(url)
+    state.closedPeriods = data  // 😱
+  }
+}</code></pre>
+						<div class="fragment">
+							<p>Why is this bad?</p>
+							<ul>
+								<li class="fragment">Mutations aren't tracked by Vue devtools</li>
+								<li class="fragment">Can't time-travel debug</li>
+								<li class="fragment">Makes testing harder</li>
+								<li class="fragment">Breaks Vue's reactivity patterns</li>
+							</ul>
+						</div>
+					</section>
+
+					<section>
+						<h3>The Better Way</h3>
+						<pre><code class="javascript">mutations: {
+  setClosedPeriods(state, periods) {
+    state.closedPeriods = periods
+  }
+},
+actions: {
+  async loadClosedPeriods({ commit }) {
+    const url = `${config.apiUrl}/billing/closedPeriod`
+    const { data } = await axios.get(url)
+    commit('setClosedPeriods', data)  // ✅
+  }
+}</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h3>Anti-Pattern #2:<br />Watchers Gone Wild</h3>
+						<pre><code class="javascript">// From our codebase:
+watch: {
+  '$store.state.reports.visitResultSetIds.0': {
+    async handler(visitResultSetId) {
+      if (!visitResultSetId) {
+        this.loading = true
+        return
+      }
+      this.loading = true
+      const { data } = await this.reportRequest(...)
+      this.tableData = data
+      this.loading = false
+    },
+    immediate: true,
+  }
+}</code></pre>
+					</section>
+
+					<section>
+						<h3>The Better Way</h3>
+						<pre><code class="javascript">computed: {
+  ...mapState({
+    visitResultSetId: state => state.reports.visitResultSetIds[0]
+  })
+},
+methods: {
+  ...mapActions(['handleVisitResultSetChange'])
+},
+watch: {
+  visitResultSetId: {
+    immediate: true,
+    handler() {
+      this.handleVisitResultSetChange()
+    }
+  }
+}</code></pre>
+						<p class="fragment">Even better: We moved the loading logic to the store!</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>The Store as Single Source of Truth</h2>
+						<p class="fragment">"One State to Rule Them All"</p>
+					</section>
+
+					<section>
+						<h3>Loading States</h3>
+						<div class="columns">
+							<div class="column">
+								<pre class="code-sm"><code class="javascript">state: {
+  visits: [],
+  isLoading: false,
+  error: null
+}</code></pre>
+								<pre class="code-sm"><code class="javascript">mutations: {
+  setLoading(state, status) {
+    state.isLoading = status
+  }
+}</code></pre>
+							</div>
+							<div class="column">
+								<pre class="code-sm" style="width: 480px !important;"><code class="javascript">actions: {
+  async loadVisits({ commit }) {
+    commit('setLoading', true)
+    try {
+      const url = '/api/visits'
+      const { data } = await axios.get(url)
+      commit('setVisits', data)
+    } finally {
+      commit('setLoading', false)
+    }
+  }
+}</code></pre>
+							</div>
+						</div>
+					</section>
+
+					<section>
+						<h3>In Components</h3>
+						<pre class="code-sm"><code class="javascript">export default {
+  computed: {
+    ...mapState(['visits', 'isLoading']),
+    ...mapGetters(['sortedVisits'])
+  }
+}
+
+// Template
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;q-spinner v-if="isLoading" /&gt;
+    &lt;visit-list
+      v-else
+      :visits="sortedVisits"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Quick Wins</h2>
+						<p>Things we can start doing better today</p>
+					</section>
+
+					<section>
+						<h3>1. Move API Calls to Actions</h3>
+						<pre><code class="javascript">// Before
+async mounted() {
+  const { data } = await axios.get('/api/visits')
+  this.visits = data
+}
+
+// After
+async mounted() {
+  await this.$store.dispatch('loadVisits')
+}</code></pre>
+					</section>
+
+					<section>
+						<h3>2. Use Computed Properties</h3>
+						<pre class="code-sm"><code class="javascript">// Before
+data() {
+  return {
+    filteredVisits: []
+  }
+},
+watch: {
+  visits() {
+    this.filteredVisits = this.visits.filter(...)
+  }
+}
+
+// After
+computed: {
+  filteredVisits() {
+    return this.visits.filter(...)
+  }
+}</code></pre>
+					</section>
+
+					<section>
+						<h3>3. Proper Error Handling</h3>
+						<pre><code class="javascript">// In the store
+actions: {
+  async saveVisit({ commit }, visit) {
+    commit('setSaving', true)
+    try {
+      const { data } = await axios.post('/api/visits', visit)
+      commit('updateVisit', data)
+    } catch (error) {
+      commit('setError', error)
+      // Let components handle UI feedback
+    } finally {
+      commit('setSaving', false)
+    }
+  }
+}</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<h1>Common Questions</h1>
+				</section>
+
+
+				<section>
+					<div>
+						<h4>What about small components?</h4>
+						<p><small>Local state is fine for truly local concerns (like form input state)</small></p>
+					</div>
+				</section>
+				<section>
+					<div style="text-align: left">
+						<div>
+							<h4>Why not just make API calls in components?</h4>
+							<p><small>Because state management isn't just about getting data.<br />It's about managing the entire lifecycle of that data.</small></p>
+						</div>
+					</div>
+				</section>
+				<section>
+					<div style="text-align: left">
+						<div>
+							<h4>"But it takes longer to do it this way!"</h4>
+							<p class="fragment"><small>You know what else takes longer? Explaining to users why:</small></p>
+							<ul style="font-size: 0.6em;">
+								<li class="fragment"><span>Their data disappeared when they switched tabs</span></li>
+								<li class="fragment"><span>They have to refresh the page to see updates</span></li>
+								<li class="fragment"><span>The loading spinner is stuck forever</span></li>
+								<li class="fragment"><span>The error message says "undefined is not a function"</span></li>
+							</ul>
+							<p class="fragment">Technical debt always comes due.<br />Users pay the interest.</p>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h2>Thank You!</h2>
+					<img src="assets/be-like-bill.png" alt="Be like bill" style="height: 460px !important">
+					<p class="fragment" style="margin-top: -0.5em;">Special thanks to Kaitlyn Concilio for the support. Without her I wouldn't be here giving you this TED talk.</p>
+				</section>
+
 			</div>
 		</div>
 
@@ -32,8 +413,15 @@
 			Reveal.initialize({
 				hash: true,
 
+				// Show line numbers in code
+				highlight: {
+					lineNumbers: true
+				},
+				// Enable slide animations
+				transition: 'slide',
+
 				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+				plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
 			});
 		</script>
 	</body>
