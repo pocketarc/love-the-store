@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>How to Stop Worrying and Love the Store</title>
+		<title>Vue State Management: Data Down, Events Up</title>
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
@@ -38,11 +38,11 @@
             .columns {
                 display: flex;
                 justify-content: space-between;
-                gap: 2rem;
             }
 
             .column {
-                flex: 1;
+                flex-grow: 1;
+	            flex-shrink: 1;
             }
 		</style>
 	</head>
@@ -50,63 +50,45 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<h1>Vue.js State Management</h1>
+					<h1>Vue State Management</h1>
 					<h3>Data Down, Events Up</h3>
-					<p class="fragment">Or: How to Stop Worrying and Love the Store</p>
 				</section>
+
 				<section>
-					<h2>A Brief Timeline</h2>
-					<ul style="font-size: 0.9em;">
-						<li class="fragment">2014: Vue is released</li>
-						<li class="fragment">2016: I started using Vue (coming from PHP)</li>
-						<li class="fragment">Have used Vue 2 and Vue 3 with Vuex and Pinia</li>
-						<li class="fragment">The mindset shift:</li>
-					</ul>
-					<div class="fragment">
-    <pre><code class="php">// PHP: Just get the data and show it
-$users = User::all();
-foreach($users as $user) {
-    echo $user->name;
-}</code></pre>
-					</div>
-					<div class="fragment">
-    <pre><code class="javascript">// Vue: Declare how it should look
+					<h2>Thinking in Vue</h2>
+					<div class="columns">
+						<div class="column" style="min-width: 520px;">
+							<h3>PHP / Laravel</h3>
+							<pre class="code-sm"><code class="php">// Controller
+public function index()
+{
+    $users = User::all();
+    return view('users.index', compact('users'));
+}
+
+// Blade template
+@foreach($users as $user)
+    <div>{{ $user->name }}</div>
+@endforeach</code></pre>
+						</div>
+						<div class="column">
+							<h3>Vue</h3>
+							<pre class="code-sm"><code class="javascript">// Component
 computed: {
   users() {
     return this.$store.state.users
   }
 }
-// Template: <div v-for="user in users">{{ user.name }}</div></code></pre>
-					</div>
-				</section>
 
-				<section>
-					<h2>Our Current Situation</h2>
-					<div class="fragment">
-    <pre><code class="javascript">// Exhibit A: Component doing too much
-data: {
-  tableData: []
-},
-watch: {
-  '$store.state.reports.visitResultSetIds.0': {
-    async handler(visitResultSetId) {
-      const { data } = await this.reportRequest(...)
-      this.tableData = data
-    }
-  }
-}</code></pre>
+// Template
+&lt;template&gt;
+  &lt;div v-for="user in users"&gt;
+    {{ user.name }}
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre>
+						</div>
 					</div>
-					<br/>
-					<div class="fragment">
-    <pre><code class="javascript">// Exhibit B: Poor error handling
-const { data } = await this.reportRequest(...)
-this.tableData = data
-// Request failed, but the user just sees a loading spinner
-</code></pre>
-					</div>
-					<div class="fragment">
-						<img src="assets/this-is-fine.jpg" alt="This is fine meme" style="position: absolute; top: 320px; right: 48px; height: 170px !important;"/>
-					</div>
+					<p>From "get and show" to "declare and react"</p>
 				</section>
 
 				<section>
@@ -145,128 +127,210 @@ methods: {
 				</section>
 
 				<section>
-					<div class="columns" style="align-items: center">
-						<div class="column">
-							<h2>Let's Look at Some Anti-Patterns</h2>
-							<p>Or: "What Not To Do"</p>
+					<section>
+						<h2>The Store as<br />Single Source of Truth</h2>
+						<div style="text-align: center; font-size: 1em; line-height: 1.8;">
+							<div style="font-size: 0.8em;line-height: 1.4">→ mutations</div>
+							<div style="font-size: 0.8em;line-height: 1.4">→ API requests</div>
+							<div style="font-weight: bold;">Store</div>
+							<div style="font-size: 0.8em;line-height: 1.4">↓ state</div>
+							<div style="font-size: 0.8em;line-height: 1.4">↓ getters</div>
+							<div style="font-size: 0.8em;line-height: 1.4">↑ events/actions</div>
+							<div style="font-weight: bold;">Components</div>
 						</div>
-						<div class="column">
-							<img src="assets/scared-developer.png" alt="Scared developer" style="height: 600px !important">
+					</section>
+
+					<section>
+						<h3>Data Flows Down: State & Loading</h3>
+						<div class="columns">
+							<div class="column">
+                <pre class="code-sm"><code class="javascript">// In the store
+state: {
+  visits: {
+    data: [],
+    status: 'idle',
+    error: null
+  }
+},
+getters: {
+  isLoading: state =>
+    state.visits.status === 'loading',
+  sortedVisits: state =>
+    [...state.visits.data].sort(...)
+}</code></pre>
+							</div>
+							<div class="column">
+                <pre class="code-sm"><code class="javascript" style="min-width: 425px;">// In the component
+computed: {
+  ...mapState({
+    visits: state => state.visits.data
+  }),
+  ...mapGetters(['isLoading', 'sortedVisits'])
+}
+
+// Template
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;loading-spinner v-if="isLoading" /&gt;
+    &lt;visit-list
+      v-else
+      :visits="sortedVisits"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre>
+							</div>
 						</div>
-					</div>
+					</section>
+
+					<section>
+						<h3>Events Bubble Up: Actions</h3>
+						<div class="columns">
+							<div class="column">
+                <pre class="code-sm"><code class="javascript">// In the component
+methods: {
+  async handleVisitUpdate(changes) {
+    // Event bubbles up as an action
+    await this.$store.dispatch(
+      'updateVisit',
+      changes
+    )
+  }
+}</code></pre>
+							</div>
+							<div class="column">
+                <pre class="code-sm"><code class="javascript" style="min-width: 490px;">// In the store
+actions: {
+  async updateVisit({ commit }, changes) {
+    commit('setStatus', 'loading')
+    try {
+      const response = await api.updateVisit(changes)
+      commit('updateVisitData', response.data)
+      commit('setStatus', 'success')
+    } catch (error) {
+      commit('setError', error)
+      commit('setStatus', 'error')
+    }
+  }
+}</code></pre>
+							</div>
+						</div>
+						<p class="fragment">Components dispatch actions, store handles the complexity</p>
+					</section>
+				</section>
+
+				<section>
+					<h2>Common State Management Pitfalls</h2>
+					<p>Learning Vue reactive patterns takes time</p>
 				</section>
 
 				<section>
 					<section>
-						<h3>Anti-Pattern #1: Direct State Mutations</h3>
-						<pre><code class="javascript">// In our codebase right now:
+						<h3>Pattern 1: Direct State Access</h3>
+						<pre><code class="javascript">// A natural first approach:
 actions: {
-  async loadClosedPeriods({ state }) {
-    const url = `${config.apiUrl}/billing/closedPeriod`
+  async loadVisits({ state }) {
+    const url = `${config.apiUrl}/visits`
     const { data } = await axios.get(url)
-    state.closedPeriods = data  // 😱
+    state.visits = data
   }
 }</code></pre>
-						<div class="fragment">
-							<p>Why is this bad?</p>
+						<div>
+							<p>Why this pattern needs evolution:</p>
 							<ul>
-								<li class="fragment">Mutations aren't tracked by Vue devtools</li>
-								<li class="fragment">Can't time-travel debug</li>
-								<li class="fragment">Makes testing harder</li>
-								<li class="fragment">Breaks Vue's reactivity patterns</li>
+								<li>Makes debugging more challenging</li>
+								<li>Harder to track state changes</li>
+								<li>Testing becomes more complex</li>
+								<li>Misses Vue's reactivity benefits</li>
 							</ul>
 						</div>
 					</section>
 
 					<section>
-						<h3>The Better Way</h3>
+						<h3>The Reactive Approach</h3>
 						<pre><code class="javascript">mutations: {
-  setClosedPeriods(state, periods) {
-    state.closedPeriods = periods
+  setVisits(state, visits) {
+    state.visits = visits
   }
 },
 actions: {
-  async loadClosedPeriods({ commit }) {
-    const url = `${config.apiUrl}/billing/closedPeriod`
+  async loadVisits({ commit }) {
+    const url = `${config.apiUrl}/visits`
     const { data } = await axios.get(url)
-    commit('setClosedPeriods', data)  // ✅
+    commit('setVisits', data)
   }
 }</code></pre>
+						<p>Benefits: Trackable changes, easier debugging, better testing</p>
 					</section>
 				</section>
 
 				<section>
 					<section>
-						<h3>Anti-Pattern #2:<br/>Watchers Gone Wild</h3>
-						<pre><code class="javascript">// From our codebase:
+						<h3>Pattern 2: Component-Level Data Management</h3>
+						<pre><code class="javascript">// Starting point: Component handling everything
 watch: {
-  '$store.state.reports.visitResultSetIds.0': {
-    async handler(visitResultSetId) {
-      if (!visitResultSetId) {
+  '$store.state.visits.0': {
+    async handler(visitId) {
+      if (!visitId) {
         this.loading = true
         return
       }
       this.loading = true
-      const { data } = await this.reportRequest(...)
+      const { data } = await this.loadVisits(...)
       this.tableData = data
       this.loading = false
     },
     immediate: true,
   }
 }</code></pre>
+						<p class="fragment">This pattern mixes concerns: state management, data fetching, and loading states</p>
 					</section>
 
 					<section>
-						<h3>The Better Way</h3>
+						<h3>Better: Delegating to the Store</h3>
 						<pre><code class="javascript">computed: {
   ...mapState({
-    visitResultSetId: state => state.reports.visitResultSetIds[0]
+    firstVisitId: state => state.visits[0]
   })
 },
 methods: {
-  ...mapActions(['handleVisitResultSetChange'])
+  ...mapActions(['handleFirstVisitChange'])
 },
 watch: {
-  visitResultSetId: {
+  firstVisitId: {
     immediate: true,
     handler() {
-      this.handleVisitResultSetChange()
+      this.handleFirstVisitChange()
     }
   }
 }</code></pre>
-						<p class="fragment">Even better: We moved the loading logic to the store!</p>
-					</section>
-				</section>
-
-				<section>
-					<section>
-						<h2>The Store as Single Source of Truth</h2>
-						<p class="fragment">"One State to Rule Them All"</p>
 					</section>
 
 					<section>
-						<h3>Loading States</h3>
+						<h3>Best: Embracing Reactivity</h3>
 						<div class="columns">
 							<div class="column">
-								<pre class="code-sm"><code class="javascript">state: {
-  visits: [],
-  isLoading: false,
-  error: null
-}</code></pre>
-								<pre class="code-sm"><code class="javascript">mutations: {
-  setLoading(state, status) {
-    state.isLoading = status
+								<pre class="code-sm"><code class="javascript" style="min-width: 400px;">export default {
+  computed: {
+    ...mapState(['visitData', 'isLoading'])
+  },
+  created() {
+    // Component asks for what it needs
+    this.$store.dispatch('loadVisitData')
   }
 }</code></pre>
 							</div>
 							<div class="column">
-								<pre class="code-sm" style="width: 480px !important;"><code class="javascript">actions: {
-  async loadVisits({ commit }) {
+								<pre class="code-sm"><code class="javascript" style="min-width: 480px;">// In the store
+actions: {
+  async loadVisitData({ commit, state }) {
+    if (state.isLoading) {
+        return
+    }
+
     commit('setLoading', true)
     try {
-      const url = '/api/visits'
-      const { data } = await axios.get(url)
-      commit('setVisits', data)
+      const data = await api.getVisitData(visitId)
+      commit('setVisitData', data)
     } finally {
       commit('setLoading', false)
     }
@@ -274,230 +338,276 @@ watch: {
 }</code></pre>
 							</div>
 						</div>
+						<p>Benefits:</p>
+						<ul>
+							<li>Simpler component code</li>
+							<li>No watchers needed</li>
+							<li>Clear separation of concerns</li>
+							<li>Store handles all data management</li>
+						</ul>
 					</section>
 
-					<section>
-						<h3>In Components</h3>
-						<pre class="code-sm"><code class="javascript">export default {
-  computed: {
-    ...mapState(['visits', 'isLoading']),
-    ...mapGetters(['sortedVisits'])
+						<section>
+							<h3>Pattern 3: Incomplete Error Handling</h3>
+							<pre class="code-sm"><code class="javascript">// Missing error handling completely
+actions: {
+  async loadVisits({ commit }) {
+    const { data } = await axios.get('/api/visits')
+    commit('setVisits', data)
+    // Request fails? User sees nothing or infinite spinner
   }
-}
+}</code></pre>
+							<pre class="code-sm"><code class="javascript">// Or mixing UI concerns in the store
+actions: {
+  async loadVisits({ commit }) {
+    try {
+      const { data } = await axios.get('/api/visits')
+      commit('setVisits', data)
+    } catch (error) {
+      // UI doesn't belong in the store! 😱
+      this.$toast.error('Failed to load visits')
+    }
+  }
+}</code></pre>
+						</section>
 
-// Template
-&lt;template&gt;
-  &lt;div&gt;
-    &lt;q-spinner v-if="isLoading" /&gt;
-    &lt;visit-list
-      v-else
-      :visits="sortedVisits"
-    /&gt;
-  &lt;/div&gt;
-&lt;/template&gt;</code></pre>
-					</section>
+						<section>
+							<h3>The Reactive Approach</h3>
+							<pre class="code-sm"><code class="javascript">// In the store: Handle state, not UI
+actions: {
+  async loadVisits({ commit }) {
+    commit('setStatus', 'loading')
+    try {
+      const { data } = await axios.get('/api/visits')
+      commit('setVisits', data)
+      commit('setStatus', 'success')
+    } catch (error) {
+      commit('setError', error)
+      commit('setStatus', 'error')
+    }
+  }
+},</code></pre>
+							<pre class="code-sm"><code class="javascript">// In the component: Handle UI
+computed: {
+  ...mapState({
+    error: state => state.visits.error,
+    status: state => state.visits.status
+  })
+},
+watch: {
+  error(error) {
+    if (error) {
+      this.$toast.error('Failed to load visits')
+    }
+  }
+}</code></pre>
+						</section>
+
 				</section>
 
 				<section>
 					<section>
-						<h2>Quick Wins</h2>
-						<p>Things we can start doing better today</p>
+						<h2>See It, Code It, Sort It</h2>
+						<p>Next time you're working on a component...</p>
+						<img src="assets/see-it-say-it-sorted.jpg" alt="See it, say it, sorted" style="height: 300px">
 					</section>
 
 					<section>
-						<h3>1. Move API Calls to Actions</h3>
-						<pre><code class="javascript">// Before
+						<h3>When You See: Direct API Calls</h3>
+						<pre><code class="javascript">// You see this:
 async mounted() {
   const { data } = await axios.get('/api/visits')
   this.visits = data
-}
-
-// After
-async mounted() {
-  await this.$store.dispatch('loadVisits')
 }</code></pre>
+						<pre class="fragment"><code class="javascript">// Code this instead:
+created() {
+  this.$store.dispatch('loadVisits')
+}</code></pre>
+						<p class="fragment">Sorted: Store handles data fetching,<br />component stays clean</p>
 					</section>
 
 					<section>
-						<h3>2. Use Computed Properties</h3>
-						<pre class="code-sm"><code class="javascript">// Before
+						<h3>When You See: Watchers Updating Data</h3>
+						<div class="columns">
+							<div class="column">
+                <pre class="code-sm"><code class="javascript">// You see this:
 data() {
-  return {
-    filteredVisits: []
-  }
+  return { filtered: [] }
 },
 watch: {
   visits() {
-    this.filteredVisits = this.visits.filter(...)
+    this.filtered = this.visits.filter(...)
   }
-}
-
-// After
+}</code></pre>
+							</div>
+							<div class="column">
+                <pre class="fragment code-sm"><code class="javascript">// Code this instead:
 computed: {
-  filteredVisits() {
+  filtered() {
     return this.visits.filter(...)
   }
 }</code></pre>
+							</div>
+						</div>
+						<p class="fragment">Sorted: Let Vue's reactivity system do the work</p>
 					</section>
 
 					<section>
-						<h3>3. Proper Error Handling</h3>
-						<pre><code class="javascript">// In the store
-actions: {
-  async saveVisit({ commit }, visit) {
-    commit('setSaving', true)
-    try {
-      const { data } = await axios.post('/api/visits', visit)
-      commit('updateVisit', data)
-    } catch (error) {
-      commit('setError', error)
-      // Let components handle UI feedback
-    } finally {
-      commit('setSaving', false)
-    }
+						<h3>When You See: Component-Managed State</h3>
+						<div class="columns">
+							<div class="column">
+                <pre class="code-sm"><code class="javascript">// You see this:
+data() {
+  return {
+    visits: [],
+    loading: false,
+    error: null
   }
+},
+async mounted() {
+  this.loading = true
+  try {
+    this.visits = await this.loadVisits()
+  } catch (e) {
+    this.error = e
+  }
+  this.loading = false
 }</code></pre>
+							</div>
+							<div class="column">
+                <pre class="fragment code-sm"><code class="javascript">// Code this instead:
+computed: {
+  ...mapState({
+    loading: (state) => {
+      return state.visits.status === 'loading'
+    },
+    error: (state) => {
+      return state.visits.error
+    }
+  })
+},
+created() {
+  this.$store.dispatch('loadVisits')
+}</code></pre>
+							</div>
+						</div>
+						<p class="fragment">Sorted: Clean components, centralized state management</p>
 					</section>
 				</section>
 
 				<section>
 					<section>
 						<h2>Advanced Patterns</h2>
-						<p class="fragment">Things I Wish I Knew Earlier</p>
 					</section>
 
 					<section>
-						<h3>Getters with Parameters</h3>
-						<pre style="width: 1100px; margin-left: -70px"><code class="javascript">// Instead of multiple similar getters...
+						<h3>Smarter Data Flow</h3>
+                <pre class="code-sm"><code class="javascript">// Instead of multiple getters...
 getActiveVisits: state => state.visits.filter(v => v.active),
-getCancelledVisits: state => state.visits.filter(v => v.cancelled),
 getCompletedVisits: state => state.visits.filter(v => v.completed),
 
-// Create one flexible getter
+// One flexible getter
 getVisitsByStatus: state => status => state.visits.filter(v => v.status === status)</code></pre>
-						<pre class="fragment"><code class="javascript">// Usage in components
+                <pre class="code-sm"><code class="javascript">// In components
 computed: {
   activeVisits() {
     return this.$store.getters.getVisitsByStatus('active')
+  },
+  completedVisits() {
+    return this.$store.getters.getVisitsByStatus('completed')
   }
 }</code></pre>
+						<p class="fragment">DRY state access with flexible getters</p>
 					</section>
 
 					<section>
-						<h3>Action Composition</h3>
+						<h3>Coordinated Actions</h3>
 						<pre><code class="javascript">actions: {
-  // Load everything we need on app start
+  // Orchestrate complex workflows
   async initializeApp({ dispatch }) {
     await dispatch('loadUser')  // Must load first
 
     // These can load in parallel
     await Promise.all([
       dispatch('loadVisits'),
-      dispatch('loadProviders'),
-      dispatch('loadSettings')
+      dispatch('loadSettings'),
+      dispatch('loadPreferences')
     ])
-  },</code></pre>
+  }
+}</code></pre>
+						<p class="fragment">Compose actions for complex flows while keeping components simple</p>
 					</section>
 
 					<section>
-						<h3>Global Action Subscribers</h3>
-						<pre><code class="javascript">// Perfect for global loading states
+						<h3>Global State Management</h3>
+						<pre><code class="javascript">// Handle loading and errors consistently
 store.subscribeAction({
-  before: (action, state) => {
+  before: (action) => {
     if (action.type.startsWith('load')) {
-      startLoadingSpinner()
+      startLoadingIndicator()
     }
   },
-  after: (action, state) => {
+  after: (action) => {
     if (action.type.startsWith('load')) {
-      stopLoadingSpinner()
+      stopLoadingIndicator()
     }
   },
-  error: (action, state, error) => {
-    showErrorNotification(error)
+  error: (action, error) => {
+    handleError(error)
   }
 })</code></pre>
-						<p class="fragment">Handle loading and errors in one place!</p>
+						<p class="fragment">Consistent behavior across all store interactions</p>
 					</section>
 
 					<section>
-						<h3>Better Async State</h3>
-						<pre><code class="javascript">// Instead of separate flags everywhere...
+						<h3>Rich State Objects</h3>
+
+						<div class="columns">
+							<div class="column">
+<pre class="code-sm"><code class="javascript">// Instead of scattered state
 state: {
   visits: [],
+  selectedVisitId: null,
   isLoading: false,
-  error: null
+  error: null,
+  sortDirection: 'asc'
 }
 
-// Group related state together
+// Group related state
 state: {
   visits: {
     data: [],
-    status: 'idle', // 'loading' | 'success' | 'error'
-    error: null,
-    lastLoaded: null
-  }
-}
-
-// Usage in components
-computed: {
-  isLoading() {
-    return this.visits.status === 'loading'
-  }
-}</code></pre>
-					</section>
-
-					<section>
-						<h3>Clean State Reset</h3>
-						<pre><code class="javascript">const initialState = {
-  visits: {
-    data: [],
+    selected: null,
     status: 'idle',
-    error: null
-  }
-}
-
-export default {
-  state: () => ({...initialState}),  // Function form!
-  mutations: {
-    resetState(state) {
-      Object.assign(state, initialState)
+    error: null,
+    sortConfig: {
+      field: 'date',
+      direction: 'asc'
     }
   }
 }</code></pre>
-						<p class="fragment">Perfect for user logout or error recovery</p>
-					</section>
-
-					<section>
-						<h3>Two-Way Computed with Store</h3>
-						<pre><code class="javascript">computed: {
-  visitName: {
-    get() {
-      return this.$store.state.currentVisit.name
-    },
-    set(value) {
-      this.$store.commit('updateVisitName', value)
-    }
+							</div>
+							<div class="column">
+<pre class="code-sm"><code class="javascript" style="min-width: 520px;">// In components
+computed: {
+  visits() {
+	  return this.$store.state.visits
+  },
+  sortedVisits() {
+    const { field, direction } = this.visits.sortConfig
+    return [...this.visits.data].sort((a, b) => {
+      if (direction === 'asc') {
+        return a[field].localeCompare(b[field])
+      } else {
+        return b[field].localeCompare(a[field])
+      }
+    })
   }
-}
-
-// In template
-&lt;input
-  v-model="visitName"
-  placeholder="Visit name"
-/&gt;</code></pre>
-						<p class="fragment">Clean two-way binding with store state</p>
+}</code></pre>
+							</div>
+						</div>
+						<p class="fragment">Cohesive state management enables cleaner components</p>
 					</section>
-				</section>
-
-				<section>
-					<h3>What You Can Do Tomorrow</h3>
-					<ol>
-						<li class="fragment">Move one API call from a component to the store</li>
-						<li class="fragment">Convert one watcher to a computed property</li>
-						<li class="fragment">Add proper error handling to one store action</li>
-					</ol>
-					<p class="fragment">Small steps, big impact</p>
 				</section>
 
 				<section>
