@@ -1,20 +1,23 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-		<title>Vue State Management: Data Down, Events Up</title>
+        <title>Better living with Vuex</title>
 
-		<link rel="stylesheet" href="dist/reset.css">
-		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css">
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-		<link rel="stylesheet" href="plugin/highlight/github.css">
+        <link rel="stylesheet" href="dist/reset.css" />
+        <link rel="stylesheet" href="dist/reveal.css" />
+        <link rel="stylesheet" href="dist/theme/black.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="plugin/highlight/github.css" />
 
-		<style>
+        <style>
             :root {
                 --r-background-color: rgb(211, 69, 50);
                 --r-main-font-size: 38px;
@@ -42,24 +45,45 @@
 
             .column {
                 flex-grow: 1;
-	            flex-shrink: 1;
+                flex-shrink: 1;
             }
-		</style>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>
-					<h1>Vue State Management</h1>
-					<h3>Data Down, Events Up</h3>
-				</section>
+        </style>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h1>Better living with Vuex</h1>
 
-				<section>
-					<h2>Thinking in Vue</h2>
-					<div class="columns">
-						<div class="column" style="min-width: 520px;">
-							<h3>PHP / Laravel</h3>
-							<pre class="code-sm"><code class="php">// Controller
+                    <aside class="notes">
+                        - Hi all, I am here to talk about my experience with Vuex.<br />
+                        - This talk will focus on core principles and patterns that can help us write more maintainable code<br />
+                        - My goal is to share some practical patterns we can all use to improve our state management<br />
+                        - We'll talk through two key ideas that have really helped me understand Vue<br />
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Data Down, Events Up</h3>
+                    <h3 class="fragment">Components show things, stores do things</h3>
+
+                    <aside class="notes">
+                        - The first, "Data down, events up", is a pattern you might recognize<br />
+                        - But in Vue, it's not just a good idea - it's the core of how components should work<br />
+                        - The second - "Components show things, stores do things" - is how we put this into practice<br />
+                        - Think of components as "dumb" presentational layers<br />
+                        - And stores as your "smart" business logic handlers<br />
+                        - Throughout this presentation, we'll look at how these principles play out.<br />
+                        - I've found these ideas really useful in my own work, and I hope you'll find them interesting<br />
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Thinking in Vue</h2>
+                    <div class="columns">
+                        <div class="column" style="min-width: 520px">
+                            <h3>PHP / Laravel</h3>
+                            <pre class="code-sm"><code class="php">// Controller
 public function index()
 {
     $users = User::all();
@@ -70,10 +94,10 @@ public function index()
 @foreach($users as $user)
     <div>{{ $user->name }}</div>
 @endforeach</code></pre>
-						</div>
-						<div class="column">
-							<h3>Vue</h3>
-							<pre class="code-sm"><code class="javascript">// Component
+                        </div>
+                        <div class="column">
+                            <h3>Vue</h3>
+                            <pre class="code-sm"><code class="javascript">// Component
 computed: {
   users() {
     return this.$store.state.users
@@ -86,65 +110,90 @@ computed: {
     {{ user.name }}
   &lt;/div&gt;
 &lt;/template&gt;</code></pre>
-						</div>
-					</div>
-					<p>From "get and show" to "declare and react"</p>
-				</section>
+                        </div>
+                    </div>
+                    <p>From "get and show" to "declare and react"</p>
 
-				<section>
-					<section>
-						<h2>The Core Principle</h2>
-						<h1 class="fragment">Data flows down</h1>
-						<h1 class="fragment">Events bubble up</h1>
-					</section>
+                    <aside class="notes">
+                        - Let's start with something we all know well - displaying a list of users in Laravel<br />
+                        - In PHP, we fetch the data, pass it to the view, and loop through it - very straightforward, very procedural<br />
+                        - But Vue thinks about this differently...<br />
+                        - Instead of "get and show", Vue declares relationships between data and the UI<br />
+                        - When we switch to Vue, we're defining how things should look based on state<br />
+                        - The store becomes our source of truth, and the component just declares "when users change, show them like this"<br />
+                        - This mental shift from procedural to reactive is key to working effectively with Vue<br />
+                    </aside>
+                </section>
 
-					<section>
-						<h3>Data Down</h3>
-						<pre><code class="javascript">// In the parent
-computed: {
-  ...mapState(['visitData'])
-}
+                <section>
+                    <section>
+                        <h2>The Core Principle</h2>
+                        <h1 class="fragment">Data flows down</h1>
+                        <h1 class="fragment">Events bubble up</h1>
 
-// In the template
-&lt;visit-details
-  :visit="visitData"
-  @update="handleUpdate"
-/&gt;</code></pre>
-					</section>
+                        <pre class="fragment"><code class="html">
+<button onclick="handleClick()">Click me</button>
+</code></pre>
 
-					<section>
-						<h3>Events Up</h3>
-						<pre><code class="javascript">// In the child component
-methods: {
-  updateVisit() {
-    this.$emit('update', {
-      id: this.visit.id,
-      changes: this.changes
-    })
-  }
-}</code></pre>
-					</section>
-				</section>
+                        <aside class="notes">
+                            - These two principles are the foundation of Vue's component model<br />
+                            - They're simple to say, but profound in practice<br />
+                            - Let's break this down with something we all know...<br />
+                            - Look at this simple HTML button - it's been around since the dawn of the web<br />
+                            - Notice what it DOESN'T do:<br />
+                            * Doesn't make API calls<br />
+                            * Doesn't handle business logic<br />
+                            * Doesn't manage state<br />
+                            - It does exactly two things:<br />
+                            * Shows what it's told to show (data down)<br />
+                            * Emits click events (events up)<br />
+                            - This is exactly how Vue components should work<br />
+                            - They're presentational - they take data, show it, and emit events<br />
+                            - All the complex logic belongs somewhere else<br />
+                            - This separation of concerns is key to maintainable Vue apps
+                        </aside>
+                    </section>
+                </section>
 
-				<section>
-					<section>
-						<h2>The Store as<br />Single Source of Truth</h2>
-						<div style="text-align: center; font-size: 1em; line-height: 1.8;">
-							<div style="font-size: 0.8em;line-height: 1.4">→ mutations</div>
-							<div style="font-size: 0.8em;line-height: 1.4">→ API requests</div>
-							<div style="font-weight: bold;">Store</div>
-							<div style="font-size: 0.8em;line-height: 1.4">↓ state</div>
-							<div style="font-size: 0.8em;line-height: 1.4">↓ getters</div>
-							<div style="font-size: 0.8em;line-height: 1.4">↑ events/actions</div>
-							<div style="font-weight: bold;">Components</div>
-						</div>
-					</section>
+                <section>
+                    <section>
+                        <h2>The Store as<br />Single Source of Truth</h2>
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 20px 40px; border-radius: 8px; font-size: 1.2em; font-weight: bold">
+                                Store
+                                <div style="font-size: 0.7em; font-weight: normal; opacity: 0.8; margin-top: 5px">(Handles all the data)</div>
+                            </div>
 
-					<section>
-						<h3>Data Flows Down: State & Loading</h3>
-						<div class="columns">
-							<div class="column">
-                <pre class="code-sm"><code class="javascript">// In the store
+                            <div style="font-size: 2em; color: rgba(255, 255, 255, 0.6)">↓</div>
+
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 20px 40px; border-radius: 8px; font-size: 1.2em; font-weight: bold">
+                                Components
+                                <div style="font-size: 0.7em; font-weight: normal; opacity: 0.8; margin-top: 5px">(Shows the UI)</div>
+                            </div>
+                        </div>
+
+                        <aside class="notes">
+                            - So if components are focused on presentation, where does all that logic go?<br />
+                            - This brings us to one of Vue's most powerful features: the store<br />
+                            - Let's talk about what I mean by "single source of truth"<br />
+                            - Think of the store as your application's database in the browser<br />
+                            - Just like we don't let our UI components talk directly to the database...<br />
+                            - ...we don't want them managing complex state either<br />
+                            - The store handles all the heavy lifting:<br />
+                            * Managing the data<br />
+                            * Handling API calls<br />
+                            * Maintaining consistency<br />
+                            - Components just need to worry about showing what's in the store<br />
+                            - This separation makes our code easier to understand and maintain<br />
+                            - If you need to know the state of something, you know exactly where to look<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>Data Flows Down: State & Loading</h3>
+                        <div class="columns">
+                            <div class="column">
+                                <pre class="code-sm"><code class="javascript">// In the store
 state: {
   visits: {
     data: [],
@@ -158,9 +207,9 @@ getters: {
   sortedVisits: state =>
     [...state.visits.data].sort(...)
 }</code></pre>
-							</div>
-							<div class="column">
-                <pre class="code-sm"><code class="javascript" style="min-width: 425px;">// In the component
+                            </div>
+                            <div class="column">
+                                <pre class="code-sm"><code class="javascript" style="min-width: 425px;">// In the component
 computed: {
   ...mapState({
     visits: state => state.visits.data
@@ -178,15 +227,31 @@ computed: {
     /&gt;
   &lt;/div&gt;
 &lt;/template&gt;</code></pre>
-							</div>
-						</div>
-					</section>
+                            </div>
+                        </div>
 
-					<section>
-						<h3>Events Bubble Up: Actions</h3>
-						<div class="columns">
-							<div class="column">
-                <pre class="code-sm"><code class="javascript">// In the component
+                        <aside class="notes">
+                            - Let's see how this works in practice<br />
+                            - Here's a real pattern I've seen in Vue apps<br />
+                            - On the left, we have our store definition<br />
+                            * Notice how we track not just the data, but its status<br />
+                            * We also have getters that compute derived state<br />
+                            - On the right is our component<br />
+                            * It's just declaring what data it needs, using mapState and mapGetters, which are Vuex helpers<br />
+                            * The loading state is handled automatically<br />
+                            * No complex logic, just presentation<br />
+                            - This pattern keeps our loading states consistent across the app<br />
+                            - And the component doesn't need to know how the data is loaded<br />
+                            - Did you use the API, did you receive a broadcast message, did the data get changed from somewhere else? The component doesn't care
+                            how the data got there<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>Events Bubble Up: Actions</h3>
+                        <div class="columns">
+                            <div class="column">
+                                <pre class="code-sm"><code class="javascript">// In the component
 methods: {
   async handleVisitUpdate(changes) {
     // Event bubbles up as an action
@@ -196,9 +261,9 @@ methods: {
     )
   }
 }</code></pre>
-							</div>
-							<div class="column">
-                <pre class="code-sm"><code class="javascript" style="min-width: 490px;">// In the store
+                            </div>
+                            <div class="column">
+                                <pre class="code-sm"><code class="javascript" style="min-width: 490px;">// In the store
 actions: {
   async updateVisit({ commit }, changes) {
     commit('setStatus', 'loading')
@@ -212,21 +277,46 @@ actions: {
     }
   }
 }</code></pre>
-							</div>
-						</div>
-						<p class="fragment">Components dispatch actions, store handles the complexity</p>
-					</section>
-				</section>
+                            </div>
+                        </div>
+                        <p class="fragment">Components dispatch actions, store handles the complexity</p>
 
-				<section>
-					<h2>Common State Management Pitfalls</h2>
-					<p>Learning Vue reactive patterns takes time</p>
-				</section>
+                        <aside class="notes">
+                            - Now let's look at the other direction - events bubbling up<br />
+                            - When something happens in the UI, we dispatch actions<br />
+                            - The component doesn't care about API calls or error handling<br />
+                            - It just says "hey, this thing happened"<br />
+                            - The store handles all the complexity:<br />
+                            * Setting loading states<br />
+                            * Making API calls<br />
+                            * Handling errors<br />
+                            * Updating the state<br />
+                            - This keeps our error handling consistent<br />
+                            - And makes our components much simpler<br />
+                        </aside>
+                    </section>
+                </section>
 
-				<section>
-					<section>
-						<h3>Pattern 1: Direct State Access</h3>
-						<pre><code class="javascript">// A natural first approach:
+                <section>
+                    <h2>Common State Management Pitfalls</h2>
+                    <p>Learning Vue reactive patterns takes time</p>
+
+                    <aside class="notes">
+                        - Now that we've seen the ideal patterns, let's talk about some common challenges<br />
+                        - These are patterns I've seen (and written!) many times<br />
+                        - They're natural ways to solve problems, but they can cause issues as apps grow<br />
+                        - We'll look at three main patterns:<br />
+                        * Direct state access<br />
+                        * Component-level data management<br />
+                        * Incomplete error handling<br />
+                        - For each one, we'll see how to evolve towards more maintainable solutions<br />
+                    </aside>
+                </section>
+
+                <section>
+                    <section>
+                        <h3>Anti-Pattern 1: Direct State Access</h3>
+                        <pre><code class="javascript">// A natural first approach:
 actions: {
   async loadVisits({ state }) {
     const url = `${config.apiUrl}/visits`
@@ -234,20 +324,33 @@ actions: {
     state.visits = data
   }
 }</code></pre>
-						<div>
-							<p>Why this pattern needs evolution:</p>
-							<ul>
-								<li>Makes debugging more challenging</li>
-								<li>Harder to track state changes</li>
-								<li>Testing becomes more complex</li>
-								<li>Misses Vue's reactivity benefits</li>
-							</ul>
-						</div>
-					</section>
+                        <div class="fragment">
+                            <p>Why this pattern needs evolution:</p>
+                            <ul>
+                                <li>Makes debugging more challenging</li>
+                                <li>Harder to track state changes</li>
+                                <li>Testing becomes more complex</li>
+                                <li>Misses Vue's reactivity benefits</li>
+                            </ul>
+                        </div>
 
-					<section>
-						<h3>The Reactive Approach</h3>
-						<pre><code class="javascript">mutations: {
+                        <aside class="notes">
+                            - This first pattern is very tempting<br />
+                            - It's the quickest way to get something working<br />
+                            - But it bypasses Vue's reactivity system<br />
+                            *FRAGMENT*<br />
+                            - When we modify state directly:<br />
+                            * Vue DevTools can't track the changes<br />
+                            * Time-travel debugging becomes impossible<br />
+                            * Testing gets harder because changes aren't tracked<br />
+                            - The good news is: this is easy to fix<br />
+                            - We'll see how mutations make this much more maintainable<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>The Reactive Approach</h3>
+                        <pre><code class="javascript">mutations: {
   setVisits(state, visits) {
     state.visits = visits
   }
@@ -259,14 +362,26 @@ actions: {
     commit('setVisits', data)
   }
 }</code></pre>
-						<p>Benefits: Trackable changes, easier debugging, better testing</p>
-					</section>
-				</section>
+                        <p>Benefits: Trackable changes, easier debugging, better testing</p>
 
-				<section>
-					<section>
-						<h3>Pattern 2: Component-Level Data Management</h3>
-						<pre><code class="javascript">// Starting point: Component handling everything
+                        <aside class="notes">
+                            - Here's the evolved version of that pattern<br />
+                            - We're being explicit about our state changes<br />
+                            - The mutation has a clear purpose<br />
+                            - The action orchestrates the flow<br />
+                            - Benefits:<br />
+                            * Every state change is tracked<br />
+                            * Debugging is much easier<br />
+                            * Testing becomes straightforward<br />
+                            - This small change makes a big difference in maintainability<br />
+                        </aside>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h3>Anti-Pattern 2: Component-Level Data Management</h3>
+                        <pre><code class="javascript">// Starting point: Component handling everything
 watch: {
   '$store.state.visits.0': {
     async handler(visitId) {
@@ -282,34 +397,28 @@ watch: {
     immediate: true,
   }
 }</code></pre>
-						<p class="fragment">This pattern mixes concerns: state management, data fetching, and loading states</p>
-					</section>
+                        <p class="fragment">This pattern mixes concerns: state management, data fetching, and loading states</p>
 
-					<section>
-						<h3>Better: Delegating to the Store</h3>
-						<pre><code class="javascript">computed: {
-  ...mapState({
-    firstVisitId: state => state.visits[0]
-  })
-},
-methods: {
-  ...mapActions(['handleFirstVisitChange'])
-},
-watch: {
-  firstVisitId: {
-    immediate: true,
-    handler() {
-      this.handleFirstVisitChange()
-    }
-  }
-}</code></pre>
-					</section>
+                        <aside class="notes">
+                            - This next pattern is something we see a lot<br />
+                            - Components trying to do everything themselves<br />
+                            - Look at all the responsibilities here:<br />
+                            - This component, in a watcher, is:<br />
+                            *FRAGMENT*<br />
+                            * Managing loading states<br />
+                            * Handling data fetching<br />
+                            * Error handling<br />
+                            * State management<br />
+                            - The component has become a kitchen sink<br />
+                            - This makes testing and reuse really difficult<br />
+                            - As a result, two things happen: this component is useless in any other context, and we often end up duplicating this logic across
+                            components<br />
+                        </aside>
+                    </section>
 
-					<section>
-						<h3>Best: Embracing Reactivity</h3>
-						<div class="columns">
-							<div class="column">
-								<pre class="code-sm"><code class="javascript" style="min-width: 400px;">export default {
+                    <section>
+                        <h3>The Reactive Approach</h3>
+                        <pre><code class="javascript" style="min-width: 400px;">export default {
   computed: {
     ...mapState(['visitData', 'isLoading'])
   },
@@ -318,38 +427,38 @@ watch: {
     this.$store.dispatch('loadVisitData')
   }
 }</code></pre>
-							</div>
-							<div class="column">
-								<pre class="code-sm"><code class="javascript" style="min-width: 480px;">// In the store
-actions: {
-  async loadVisitData({ commit, state }) {
-    if (state.isLoading) {
-        return
-    }
+                        <div class="fragment">
+                            <p>Benefits:</p>
+                            <ul>
+                                <li>Simpler component code</li>
+                                <li>No watchers needed</li>
+                                <li>Clear separation of concerns</li>
+                                <li>Store handles all data management</li>
+                            </ul>
+                        </div>
 
-    commit('setLoading', true)
-    try {
-      const data = await api.getVisitData(visitId)
-      commit('setVisitData', data)
-    } finally {
-      commit('setLoading', false)
-    }
-  }
-}</code></pre>
-							</div>
-						</div>
-						<p>Benefits:</p>
-						<ul>
-							<li>Simpler component code</li>
-							<li>No watchers needed</li>
-							<li>Clear separation of concerns</li>
-							<li>Store handles all data management</li>
-						</ul>
-					</section>
+                        <aside class="notes">
+                            - Now this is what we're aiming for<br />
+                            - Look how simple the component has become<br />
+                            - It just:<br />
+                            * Declares what data it needs<br />
+                            * Asks for that data when created<br />
+                            * Lets the store handle everything else<br />
+                            - The store manages all the complexity<br />
+                            *FRAGMENT*<br />
+                            - This pattern is:<br />
+                            * More testable<br />
+                            * More reusable<br />
+                            * Easier to understand<br />
+                            - And we're using Vue's reactivity system as intended<br />
+                        </aside>
+                    </section>
+                </section>
 
-						<section>
-							<h3>Pattern 3: Incomplete Error Handling</h3>
-							<pre class="code-sm"><code class="javascript">// Missing error handling completely
+                <section>
+                    <section>
+                        <h3>Anti-Pattern 3: Incomplete Error Handling</h3>
+                        <pre class="code-sm"><code class="javascript">// Missing error handling completely
 actions: {
   async loadVisits({ commit }) {
     const { data } = await axios.get('/api/visits')
@@ -357,7 +466,7 @@ actions: {
     // Request fails? User sees nothing or infinite spinner
   }
 }</code></pre>
-							<pre class="code-sm"><code class="javascript">// Or mixing UI concerns in the store
+                        <pre class="code-sm"><code class="javascript">// Or mixing UI concerns in the store
 actions: {
   async loadVisits({ commit }) {
     try {
@@ -369,11 +478,26 @@ actions: {
     }
   }
 }</code></pre>
-						</section>
 
-						<section>
-							<h3>The Reactive Approach</h3>
-							<pre class="code-sm"><code class="javascript">// In the store: Handle state, not UI
+                        <aside class="notes">
+                            - Error handling is often an afterthought<br />
+                            - We tend to see two common problems:<br />
+                            * First: completely missing error handling<br />
+                            * Result? Users stare at infinite spinners<br />
+                            * Imagine a user who is trying to download a report, and it fails<br />
+                            * Think about their experience: they're going to sit there for a long time, and not even realize they should refresh<br />
+                            - Or the second problem:<br />
+                            * Mixing UI concerns into the store<br />
+                            * In this example, the store is trying to show an error toast notification<br />
+                            * The store shouldn't know about toast messages, or anything to do with the UI!<br />
+                            - Both approaches lead to inconsistent user experience<br />
+                            - And make our error handling hard to maintain<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>The Reactive Approach</h3>
+                        <pre class="code-sm"><code class="javascript">// In the store: Handle state, not UI
 actions: {
   async loadVisits({ commit }) {
     commit('setStatus', 'loading')
@@ -387,7 +511,7 @@ actions: {
     }
   }
 },</code></pre>
-							<pre class="code-sm"><code class="javascript">// In the component: Handle UI
+                        <pre class="code-sm"><code class="javascript">// In the component: Handle UI
 computed: {
   ...mapState({
     error: state => state.visits.error,
@@ -401,36 +525,65 @@ watch: {
     }
   }
 }</code></pre>
-						</section>
 
-				</section>
+                        <aside class="notes">
+                            - Here's a better approach to error handling<br />
+                            - Here, the store focuses purely on state management<br />
+                            - It tracks loading states and errors<br />
+                            - But it doesn't care how they're displayed<br />
+                            - The component decides how to show errors to users<br />
+                            - This separation gives us flexibility<br />
+                            - We could show errors differently in different contexts<br />
+                            - While keeping our error handling consistent<br />
+                        </aside>
+                    </section>
+                </section>
 
-				<section>
-					<section>
-						<h2>See It, Code It, Sort It</h2>
-						<p>Next time you're working on a component...</p>
-						<img src="assets/see-it-say-it-sorted.jpg" alt="See it, say it, sorted" style="height: 300px">
-					</section>
+                <section>
+                    <section>
+                        <h2>See It, Code It, Sorted</h2>
+                        <p>Small steps you can take...</p>
 
-					<section>
-						<h3>When You See: Direct API Calls</h3>
-						<pre><code class="javascript">// You see this:
+                        <aside class="notes">
+                            - Let's make this practical<br />
+                            - I'm gonna show you some patterns to watch for in our codebase.<br />
+                            - We'll look at three common scenarios<br />
+                            - And how to transform them into better patterns<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>When You See: Direct API Calls</h3>
+                        <pre><code class="javascript">// You see this:
 async mounted() {
   const { data } = await axios.get('/api/visits')
   this.visits = data
 }</code></pre>
-						<pre class="fragment"><code class="javascript">// Code this instead:
+                        <pre class="fragment"><code class="javascript">// Code this instead:
 created() {
   this.$store.dispatch('loadVisits')
 }</code></pre>
-						<p class="fragment">Sorted: Store handles data fetching,<br />component stays clean</p>
-					</section>
+                        <p class="fragment">Sorted: Store handles data fetching,<br />component stays clean</p>
 
-					<section>
-						<h3>When You See: Watchers Updating Data</h3>
-						<div class="columns">
-							<div class="column">
-                <pre class="code-sm"><code class="javascript">// You see this:
+                        <aside class="notes">
+                            - First pattern: API calls inside components<br />
+                            - This is often where we start<br />
+                            - It's direct, it works, but it creates problems, as we've seen<br />
+                            *FRAGMENT*<br />
+                            - Moving these calls to the store:<br />
+                            * Makes testing easier<br />
+                            * Enables reuse of logic / components<br />
+                            * Centralizes our data handling<br />
+                            *FRAGMENT*<br />
+                            - One simple change, big improvement in maintainability<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>When You See: Watchers Updating Data</h3>
+                        <div class="columns">
+                            <div class="column">
+                                <pre class="code-sm"><code class="javascript">// You see this:
 data() {
   return { filtered: [] }
 },
@@ -439,24 +592,36 @@ watch: {
     this.filtered = this.visits.filter(...)
   }
 }</code></pre>
-							</div>
-							<div class="column">
-                <pre class="fragment code-sm"><code class="javascript">// Code this instead:
+                            </div>
+                            <div class="column">
+                                <pre class="fragment code-sm"><code class="javascript">// Code this instead:
 computed: {
   filtered() {
     return this.visits.filter(...)
   }
 }</code></pre>
-							</div>
-						</div>
-						<p class="fragment">Sorted: Let Vue's reactivity system do the work</p>
-					</section>
+                            </div>
+                        </div>
+                        <p class="fragment">Sorted: Let Vue's reactivity system do the work</p>
 
-					<section>
-						<h3>When You See: Component-Managed State</h3>
-						<div class="columns">
-							<div class="column">
-                <pre class="code-sm"><code class="javascript">// You see this:
+                        <aside class="notes">
+                            - Next up: watchers doing computed work<br />
+                            - Watchers are powerful, but often overused; there are better ways<br />
+                            *FRAGMENT*<br />
+                            - When we're just transforming data, computed properties are the right tool<br />
+                            - They're:<br />
+                            *FRAGMENT*<br />
+                            * More efficient<br />
+                            * Self-maintaining<br />
+                            * Easier to test<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>When You See: Component-Managed State</h3>
+                        <div class="columns">
+                            <div class="column">
+                                <pre class="code-sm"><code class="javascript">// You see this:
 data() {
   return {
     visits: [],
@@ -473,9 +638,9 @@ async mounted() {
   }
   this.loading = false
 }</code></pre>
-							</div>
-							<div class="column">
-                <pre class="fragment code-sm"><code class="javascript">// Code this instead:
+                            </div>
+                            <div class="column">
+                                <pre class="fragment code-sm"><code class="javascript">// Code this instead:
 computed: {
   ...mapState({
     loading: (state) => {
@@ -489,26 +654,43 @@ computed: {
 created() {
   this.$store.dispatch('loadVisits')
 }</code></pre>
-							</div>
-						</div>
-						<p class="fragment">Sorted: Clean components, centralized state management</p>
-					</section>
-				</section>
+                            </div>
+                        </div>
+                        <p class="fragment">Sorted: Clean components, centralized state management</p>
 
-				<section>
-					<section>
-						<h2>Advanced Patterns</h2>
-					</section>
+                        <aside class="notes">
+                            - Finally: components managing complex state<br />
+                            - This pattern starts simple but grows complicated<br />
+                            *FRAGMENT*<br />
+                            - Moving state to the store:<br />
+                            * Removes duplicate code<br />
+                            *FRAGMENT*<br />
+                            * Makes state management consistent<br />
+                            * Keeps components focused<br />
+                        </aside>
+                    </section>
+                </section>
 
-					<section>
-						<h3>Smarter Data Flow</h3>
-                <pre class="code-sm"><code class="javascript">// Instead of multiple getters...
+                <section>
+                    <section>
+                        <h2>Hacks</h2>
+
+                        <aside class="notes">
+                            - Now for some fun stuff<br />
+                            - These are some of my favorite tricks<br />
+                            - They're patterns that have really helped previous codebases<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>Smarter Data Flow</h3>
+                        <pre class="code-sm"><code class="javascript">// Instead of multiple getters...
 getActiveVisits: state => state.visits.filter(v => v.active),
 getCompletedVisits: state => state.visits.filter(v => v.completed),
 
 // One flexible getter
 getVisitsByStatus: state => status => state.visits.filter(v => v.status === status)</code></pre>
-                <pre class="code-sm"><code class="javascript">// In components
+                        <pre class="code-sm"><code class="javascript">// In components
 computed: {
   activeVisits() {
     return this.$store.getters.getVisitsByStatus('active')
@@ -517,12 +699,21 @@ computed: {
     return this.$store.getters.getVisitsByStatus('completed')
   }
 }</code></pre>
-						<p class="fragment">DRY state access with flexible getters</p>
-					</section>
+                        <p>DRY state access with flexible getters</p>
 
-					<section>
-						<h3>Coordinated Actions</h3>
-						<pre><code class="javascript">actions: {
+                        <aside class="notes">
+                            - Here's a neat trick for flexible data access<br />
+                            - Instead of writing separate getters for every status<br />
+                            - We create one getter that handles all cases<br />
+                            - This reduces duplicate code<br />
+                            - Makes adding new filters trivial<br />
+                            - And the components still get exactly what they need<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>Coordinated Actions</h3>
+                        <pre><code class="javascript">actions: {
   // Orchestrate complex workflows
   async initializeApp({ dispatch }) {
     await dispatch('loadUser')  // Must load first
@@ -535,12 +726,24 @@ computed: {
     ])
   }
 }</code></pre>
-						<p class="fragment">Compose actions for complex flows while keeping components simple</p>
-					</section>
+                        <p>Compose actions for complex flows while keeping components simple</p>
 
-					<section>
-						<h3>Global State Management</h3>
-						<pre><code class="javascript">// Handle loading and errors consistently
+                        <aside class="notes">
+                            - This hack helps with complex workflows<br />
+                            - Sometimes we need things to happen in a specific order<br />
+                            - Or we want to load several things in parallel<br />
+                            - The store can orchestrate all of this, dispatching multiple actions from a single action<br />
+                            - While components stay simple<br />
+                            - Think about managing app initialization at Prompt - one action can load the users, the providers, the settings, all at once, and
+                            all in parallel<br />
+                            - Or even fetching multiple filter counts and table data all at the same time<br />
+                            - Or some other complex multi-step process<br />
+                        </aside>
+                    </section>
+
+                    <section>
+                        <h3>Global State Management</h3>
+                        <pre><code class="javascript">// Handle loading and errors consistently
 store.subscribeAction({
   before: (action) => {
     if (action.type.startsWith('load')) {
@@ -556,15 +759,23 @@ store.subscribeAction({
     handleError(error)
   }
 })</code></pre>
-						<p class="fragment">Consistent behavior across all store interactions</p>
-					</section>
+                        <p>Consistent behavior across all store interactions</p>
 
-					<section>
-						<h3>Rich State Objects</h3>
+                        <aside class="notes">
+                            - Here's a powerful one: global action subscribers<br />
+                            - As an example, you can show a spinner any time the store is loading data<br />
+                            - Automatically stop the spinner when the data is loaded<br />
+                            - And automatically handle whenever an error occurs in any actions<br />
+                            - One place to handle common behaviors<br />
+                            - No need to remember to add loading states<br />
+                            - Or error handling in every action<br />
+                        </aside>
+                    </section>
 
-						<div class="columns">
-							<div class="column">
-<pre class="code-sm"><code class="javascript">// Instead of scattered state
+                    <section>
+                        <h3>Rich State Objects</h3>
+
+                        <pre class="code-sm"><code class="javascript">// Instead of scattered state
 state: {
   visits: [],
   selectedVisitId: null,
@@ -578,78 +789,100 @@ state: {
   visits: {
     data: [],
     selected: null,
-    status: 'idle',
+    status: 'idle', // Or 'loading', 'success', 'error'
     error: null,
-    sortConfig: {
+    sortOrder: {
       field: 'date',
       direction: 'asc'
     }
   }
 }</code></pre>
-							</div>
-							<div class="column">
-<pre class="code-sm"><code class="javascript" style="min-width: 520px;">// In components
-computed: {
-  visits() {
-	  return this.$store.state.visits
-  },
-  sortedVisits() {
-    const { field, direction } = this.visits.sortConfig
-    return [...this.visits.data].sort((a, b) => {
-      if (direction === 'asc') {
-        return a[field].localeCompare(b[field])
-      } else {
-        return b[field].localeCompare(a[field])
-      }
-    })
-  }
-}</code></pre>
-							</div>
-						</div>
-						<p class="fragment">Cohesive state management enables cleaner components</p>
-					</section>
-				</section>
 
-				<section>
-					<h3>Remember:</h3>
-					<ul>
-						<li class="fragment">Data flows down, events bubble up</li>
-						<li class="fragment">Components show things, stores do things</li>
-						<li class="fragment">Mutations make debugging possible</li>
-						<li class="fragment">Better patterns = better user experience</li>
-					</ul>
-				</section>
+                        <p>Cohesive state management enables cleaner components</p>
 
-				<section>
-					<h2>Thank You!</h2>
-					<img src="assets/be-like-bill.png" alt="Be like bill" style="height: 460px !important">
-					<p class="fragment" style="margin-top: -0.5em;">Special thanks to Kaitlyn Concilio for the support. Without her I wouldn't be here giving you this TED talk.</p>
-				</section>
+                        <aside class="notes">
+                            - Last hack: structured state objects<br />
+                            - Instead of flat state with scattered properties<br />
+                            - We group related state together<br />
+                            - This makes state management more organized<br />
+                            - Easier to track what belongs where<br />
+                            - And simpler to maintain as things grow<br />
+                        </aside>
+                    </section>
+                </section>
 
-			</div>
-		</div>
+                <section>
+                    <h3>Remember:</h3>
+                    <ul>
+                        <li class="fragment">Data flows down, events bubble up</li>
+                        <li class="fragment">Components show things, stores do things</li>
+                        <li class="fragment">Mutations make debugging possible</li>
+                        <li class="fragment">Better patterns = better user experience</li>
+                    </ul>
 
-		<script src="dist/reveal.js"></script>
-		<script src="plugin/notes/notes.js"></script>
-		<script src="plugin/markdown/markdown.js"></script>
-		<script src="plugin/highlight/highlight.js"></script>
-		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
+                    <aside class="notes">
+                        - Let's wrap this up with the key ideas<br />
+                        *FRAGMENT*<br />
+                        - Data flows down, events bubble up - this is our foundation<br />
+                        *FRAGMENT*<br />
+                        - Components show things, stores do things - that keeps our code clean<br />
+                        *FRAGMENT*<br />
+                        - Mutations make debugging possible - this has saved me hours<br />
+                        - And better patterns lead to better user experience.<br />
+                        - And remember, developers are users too!<br />
+                        - When our code is cleaner and more maintainable:<br />
+                        * We debug faster<br />
+                        * We ship with more confidence<br />
+                        * We enjoy our work more.<br />
+                        These patterns make life better for everyone<br />
+                        And they save the lives of users who are staring at infinite loading spinners<br />
+                    </aside>
+                </section>
 
-				// Show line numbers in code
-				highlight: {
-					lineNumbers: true
-				},
-				// Enable slide animations
-				transition: 'slide',
+                <section>
+                    <h2>Thank You!</h2>
+                    <img src="assets/be-like-bill.png" alt="Be like bill" style="height: 460px !important" />
+                    <p class="fragment" style="margin-top: -0.5em">
+                        Special thanks to Kaitlyn Concilio for the support. Without her I wouldn't be here giving you this TED talk.
+                    </p>
 
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
-			});
-		</script>
-	</body>
+                    <aside class="notes">
+                        - And finally, meet Bill<br />
+                        - This is Bill<br />
+                        - Bill is happy with Vuex and manages state beautifully<br />
+                        - Bill is awesome<br />
+                        - Be like Bill<br />
+                        - Thanks everyone for your time today<br />
+                        *FRAGMENT*<br />
+                        - And thank you to Kait, who is the most supportive manager a person could ask for<br />
+                        - Questions are very welcome<br />
+                        - And I'm always happy to chat about this stuff, any time<br />
+                    </aside>
+                </section>
+            </div>
+        </div>
+
+        <script src="dist/reveal.js"></script>
+        <script src="plugin/notes/notes.js"></script>
+        <script src="plugin/markdown/markdown.js"></script>
+        <script src="plugin/highlight/highlight.js"></script>
+        <script>
+            // More info about initialization & config:
+            // - https://revealjs.com/initialization/
+            // - https://revealjs.com/config/
+            Reveal.initialize({
+                hash: true,
+
+                // Show line numbers in code
+                highlight: {
+                    lineNumbers: true,
+                },
+                // Enable slide animations
+                transition: "slide",
+
+                // Learn about plugins: https://revealjs.com/plugins/
+                plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+            });
+        </script>
+    </body>
 </html>
